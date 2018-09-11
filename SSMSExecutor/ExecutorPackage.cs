@@ -10,6 +10,7 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.Win32;
 using Devvcat.SSMS.Options;
+using System.Timers;
 
 namespace Devvcat.SSMS
 {
@@ -28,6 +29,7 @@ namespace Devvcat.SSMS
 
         public ExecutorPackage()
         {
+            AddSkipLoading();
         }
 
         protected override void Initialize()
@@ -56,6 +58,22 @@ namespace Devvcat.SSMS
             }
             catch
             { }
+        }
+
+        // Call this method from the Initialize method
+        // to add the SkipLoading value back to the registry
+        // 2 seconds after it’s removed by SSMS
+        public void AddSkipLoading()
+        {
+            var timer = new Timer(2000);
+            timer.Elapsed += (sender, args) =>
+            {
+                //timer.Stop();
+
+                var myPackage = UserRegistryRoot.CreateSubKey(@"Packages\{" + PackageGuidString + "}");
+                myPackage?.SetValue("SkipLoading", 1);
+            };
+            timer.Start();
         }
     }
 }
